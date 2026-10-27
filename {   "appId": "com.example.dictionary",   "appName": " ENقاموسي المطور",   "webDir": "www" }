@@ -1,0 +1,41 @@
+name: Build Android Release AAB
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Prepare Web Assets
+        run: |
+          mkdir -p www
+          find . -maxdepth 1 ! -name '.' ! -name 'www' ! -name '.github' -exec cp -r {} www/ \;
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Capacitor CLI
+        run: npm install @capacitor/cli
+
+      - name: Initialize Capacitor Android
+        run: |
+          npx cap init "قاموسي المطور" com.example.dictionary --web-dir www --force
+          npx cap add android
+
+      - name: Build Web & Sync
+        run: |
+          npx cap sync android
+
+      - name: Build Release AAB
+        run: |
+          cd android
+          ./gradlew bundleRelease
